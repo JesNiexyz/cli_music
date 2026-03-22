@@ -600,7 +600,7 @@ int main() {
                 std::cout << "\n  Goodbye! 🎵\n\n";
                 break;
 
-            default:s
+            default:
                 
                 std::cout << "  Unknown option. Please try again.\n";
                 break;
