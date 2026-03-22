@@ -3,18 +3,6 @@
  *  Command-Line Music Player — music_player.cpp
  * ============================================================
  *
- *  Demonstrates all five required C++ concepts:
- *    1. Conditionals  — if/else, switch
- *    2. Loops         — while, for, range-for
- *    3. Functions     — free functions + member functions
- *    4. Classes       — Song, Playlist, MusicPlayer
- *    5. STL           — std::vector, std::map, std::queue
- *
- *  Audio playback is handled via the POSIX system() call so
- *  the player works out-of-the-box on Linux/macOS with either
- *  'mpg123' (MP3), 'ogg123' (OGG), or 'aplay' (WAV) installed.
- *  On Windows you can swap system() calls for PlaySound() or
- *  a similar Win32 API with minimal changes.
  *
  *  Compile:
  *    g++ -std=c++17 -Wall -o music_player music_player.cpp
@@ -37,18 +25,16 @@
 #include <stdexcept>   // std::out_of_range
 
 
-// ============================================================
-//  CONCEPT 3 & 4 — Helper free function (used before classes)
-// ============================================================
+
 
 /**
  * formatDuration()
  * ----------------
  * Converts a raw duration in seconds into a "mm:ss" string.
- * This is a free (non-member) FUNCTION — concept 3.
+ * This is a free (non-member) 
  */
 std::string formatDuration(int seconds) {
-    // CONCEPT 1 — conditional guard: treat negative values as zero
+  
     if (seconds < 0) seconds = 0;
 
     int mins = seconds / 60;
@@ -61,10 +47,7 @@ std::string formatDuration(int seconds) {
 }
 
 
-// ============================================================
-//  CONCEPT 4 — CLASS: Song
-//  Represents a single audio track with metadata.
-// ============================================================
+
 class Song {
 public:
     // --- Constructor ---
@@ -88,7 +71,7 @@ public:
 
     /**
      * incrementPlayCount()
-     * CONCEPT 3 — member FUNCTION that mutates state.
+     * 
      * Called every time the song is played.
      */
     void incrementPlayCount() { ++playCount_; }
@@ -96,10 +79,10 @@ public:
     /**
      * display()
      * Prints a formatted one-line summary of this song.
-     * CONCEPT 3 — member function.
+     
      */
     void display(int index = -1) const {
-        // CONCEPT 1 — conditional: only print an index number when given one
+        //  conditional: only print an index number when given one
         if (index >= 0) {
             std::cout << std::setw(3) << index << ". ";
         } else {
@@ -122,37 +105,28 @@ private:
 };
 
 
-// ============================================================
-//  CONCEPT 4 — CLASS: Playlist
-//  An ordered, named collection of Songs backed by std::vector.
-// ============================================================
+
 class Playlist {
 public:
     explicit Playlist(const std::string& name) : name_(name) {}
 
     const std::string& name() const { return name_; }
 
-    /**
-     * addSong()
-     * CONCEPT 3 — function.
-     * CONCEPT 5 — pushes onto the std::vector (STL container).
-     */
     void addSong(const Song& song) {
         songs_.push_back(song);   // vector::push_back — O(amortised 1)
     }
 
     /**
-     * removeSong()
-     * CONCEPT 2 — loop to search; CONCEPT 1 — conditional erase.
+   
      */
     bool removeSong(const std::string& title) {
         // std::find_if scans the vector with a lambda predicate
         auto it = std::find_if(songs_.begin(), songs_.end(),
             [&title](const Song& s) {
-                return s.title() == title;   // CONCEPT 1 — comparison
+                return s.title() == title;   //  — comparison
             });
 
-        // CONCEPT 1 — conditional: only erase if found
+       
         if (it != songs_.end()) {
             songs_.erase(it);
             return true;
@@ -162,7 +136,7 @@ public:
 
     /**
      * display()
-     * CONCEPT 2 — range-for loop iterates every song in the vector.
+     
      */
     void display() const {
         std::cout << "\n=== Playlist: " << name_
@@ -176,7 +150,7 @@ public:
                   << std::string(75, '-') << "\n";
 
         int idx = 1;
-        // CONCEPT 2 — range-for loop over std::vector
+       
         for (const Song& s : songs_) {
             s.display(idx++);
         }
@@ -185,7 +159,7 @@ public:
 
     /**
      * shuffle()
-     * CONCEPT 3 — function; randomises song order in-place.
+      randomises song order in-place.
      */
     void shuffle() {
         std::mt19937 rng(std::random_device{}());
@@ -195,7 +169,7 @@ public:
 
     // Provide read-only access to individual songs by index
     const Song& songAt(size_t index) const {
-        // CONCEPT 1 — range guard conditional
+        
         if (index >= songs_.size()) {
             throw std::out_of_range("Song index out of range.");
         }
@@ -211,14 +185,11 @@ public:
 
 private:
     std::string        name_;
-    std::vector<Song>  songs_;   // CONCEPT 5 — STL std::vector
+    std::vector<Song>  songs_;   // 
 };
 
 
-// ============================================================
-//  CONCEPT 4 — CLASS: MusicPlayer
-//  Manages multiple playlists, a play queue, and playback.
-// ============================================================
+
 class MusicPlayer {
 public:
     MusicPlayer() : isPlaying_(false), currentVolume_(70) {}
@@ -229,14 +200,14 @@ public:
 
     /**
      * createPlaylist()
-     * CONCEPT 5 — inserts into std::map (name → Playlist).
-     * CONCEPT 1 — checks for duplicate name.
+      inserts into std::map (name → Playlist).
+      checks for duplicate name.
      */
     void createPlaylist(const std::string& name) {
         // std::map::count returns 0 or 1 — use it as a bool check
         if (playlists_.count(name)) {
             std::cout << "  Playlist \"" << name << "\" already exists.\n";
-            return;   // CONCEPT 1 — early-return conditional
+            return;   
         }
         // map::emplace constructs in-place; avoids a copy
         playlists_.emplace(name, Playlist(name));
@@ -245,12 +216,11 @@ public:
 
     /**
      * addSongToPlaylist()
-     * CONCEPT 3 — function delegating to Playlist::addSong().
-     * CONCEPT 1 — validates that the playlist exists.
+     
      */
     void addSongToPlaylist(const std::string& playlistName, const Song& song) {
         auto it = playlists_.find(playlistName);
-        if (it == playlists_.end()) {                  // CONCEPT 1
+        if (it == playlists_.end()) {                  
             std::cout << "  Playlist \"" << playlistName << "\" not found.\n";
             return;
         }
@@ -261,11 +231,11 @@ public:
 
     /**
      * listPlaylists()
-     * CONCEPT 2 — for loop over std::map entries.
-     * CONCEPT 5 — iterates the STL map.
+     *  for loop over std::map entries.
+     * iterates the STL map.
      */
     void listPlaylists() const {
-        // CONCEPT 1 — conditional: handle empty library
+        // : handle empty library
         if (playlists_.empty()) {
             std::cout << "  No playlists yet.\n";
             return;
@@ -273,7 +243,7 @@ public:
 
         std::cout << "\n--- Your Playlists ---\n";
         int num = 1;
-        // CONCEPT 2 — range-for over std::map (yields key-value pairs)
+        // range-for over std::map (yields key-value pairs)
         for (const auto& [name, playlist] : playlists_) {
             std::cout << "  " << num++ << ". "
                       << name << "  (" << playlist.size() << " songs)\n";
@@ -283,34 +253,32 @@ public:
 
     /**
      * displayPlaylist()
-     * CONCEPT 3 — function; delegates display to Playlist.
+     * function; delegates display to Playlist.
      */
     void displayPlaylist(const std::string& name) const {
         auto it = playlists_.find(name);
-        if (it == playlists_.end()) {          // CONCEPT 1
+        if (it == playlists_.end()) {          
             std::cout << "  Playlist \"" << name << "\" not found.\n";
             return;
         }
         it->second.display();
     }
 
-    // --------------------------------------------------------
-    //  Queue management
-    // --------------------------------------------------------
+   
 
     /**
      * enqueuePlaylist()
-     * CONCEPT 2 — loop pushing all songs into the play queue.
-     * CONCEPT 5 — uses std::queue (STL FIFO adapter).
+     *  loop pushing all songs into the play queue.
+     *  uses std::queue (STL FIFO adapter).
      */
     void enqueuePlaylist(const std::string& name) {
         auto it = playlists_.find(name);
-        if (it == playlists_.end()) {           // CONCEPT 1
+        if (it == playlists_.end()) {           
             std::cout << "  Playlist \"" << name << "\" not found.\n";
             return;
         }
 
-        // CONCEPT 2 — range-for loop; copies each song into the queue
+        
         for (const Song& s : it->second.songs()) {
             playQueue_.push(s);   // queue::push enqueues at the back
         }
@@ -321,11 +289,11 @@ public:
     /**
      * playNext()
      * Plays the song at the front of the queue, then pops it.
-     * CONCEPT 1 — conditional on queue state.
-     * CONCEPT 3 — calls playSong() helper function.
+     * conditional on queue state.
+     * calls playSong() helper function.
      */
     void playNext() {
-        if (playQueue_.empty()) {               // CONCEPT 1
+        if (playQueue_.empty()) {               
             std::cout << "  Play queue is empty.\n";
             return;
         }
@@ -335,12 +303,9 @@ public:
         playQueue_.pop();   // remove from queue after playing
     }
 
-    /**
-     * playAll()
-     * CONCEPT 2 — while loop: keeps playing until queue is empty.
-     */
+    
     void playAll() {
-        // CONCEPT 1 — conditional guard
+        
         if (playQueue_.empty()) {
             std::cout << "  Nothing in the queue. Enqueue a playlist first.\n";
             return;
@@ -348,7 +313,7 @@ public:
 
         std::cout << "\n  ▶ Starting playback...\n\n";
 
-        // CONCEPT 2 — while loop: runs as long as songs remain
+        
         while (!playQueue_.empty()) {
             Song& current = playQueue_.front();
             playSong(current);
@@ -362,35 +327,23 @@ public:
     //  Volume control
     // --------------------------------------------------------
 
-    /**
-     * setVolume()
-     * CONCEPT 1 — clamps value with conditionals.
-     */
+    
     void setVolume(int vol) {
-        if (vol < 0)        vol = 0;    // CONCEPT 1 — lower clamp
-        else if (vol > 100) vol = 100;  // CONCEPT 1 — upper clamp
+        if (vol < 0)        vol = 0;    
+        else if (vol > 100) vol = 100; 
         currentVolume_ = vol;
         std::cout << "  Volume set to " << currentVolume_ << "%\n";
     }
 
     int volume() const { return currentVolume_; }
 
-    // --------------------------------------------------------
-    //  Statistics
-    // --------------------------------------------------------
-
-    /**
-     * topPlayed()
-     * CONCEPT 2 — nested loops to scan all playlists and songs.
-     * CONCEPT 5 — builds a temporary std::vector for sorting.
-     */
+   
     void topPlayed(int n = 5) const {
         // Gather every Song pointer across all playlists
-        std::vector<const Song*> allSongs;   // CONCEPT 5 — vector
-
-        // CONCEPT 2 — outer range-for: iterate map entries
+        std::vector<const Song*> allSongs;   
+        
         for (const auto& [name, playlist] : playlists_) {
-            // CONCEPT 2 — inner range-for: iterate vector of songs
+            
             for (const Song& s : playlist.songs()) {
                 allSongs.push_back(&s);
             }
@@ -399,18 +352,18 @@ public:
         // Sort descending by play count using a lambda comparator
         std::sort(allSongs.begin(), allSongs.end(),
             [](const Song* a, const Song* b) {
-                return a->playCount() > b->playCount();   // CONCEPT 1
+                return a->playCount() > b->playCount();   
             });
 
         std::cout << "\n--- Top " << n << " Most Played ---\n";
         int shown = 0;
-        // CONCEPT 2 — for loop with explicit counter
+        
         for (int i = 0; i < static_cast<int>(allSongs.size()) && shown < n; ++i) {
             allSongs[i]->display(shown + 1);
             ++shown;
         }
 
-        // CONCEPT 1 — conditional: handle case where library has no songs
+       
         if (shown == 0) {
             std::cout << "  No songs found.\n";
         }
@@ -424,9 +377,6 @@ private:
 
     /**
      * playSong()
-     * CONCEPT 3 — private helper function.
-     * CONCEPT 1 — switch on file extension to choose the right player.
-     *
      * On a real machine this calls an installed CLI audio player.
      * We wrap it in a conditional so the demo still compiles and
      * runs meaningfully even without audio files present.
@@ -443,7 +393,7 @@ private:
         const std::string& path = song.filePath();
         std::string ext;
 
-        // CONCEPT 2 — loop backward to find the last '.' in the path
+        
         for (int i = static_cast<int>(path.size()) - 1; i >= 0; --i) {
             if (path[i] == '.') {
                 ext = path.substr(i + 1);
@@ -453,11 +403,11 @@ private:
 
         // Convert extension to lower-case for reliable comparison
         for (char& c : ext) {
-            // CONCEPT 1 — conditional character transform
+            
             if (c >= 'A' && c <= 'Z') c += 32;
         }
 
-        // CONCEPT 1 — switch statement picks the right CLI player
+        
         std::string command;
         switch (ext[0]) {
             case 'm':   // mp3, m4a
@@ -473,17 +423,17 @@ private:
                 command = "flac -d -s \"" + path + "\" -o - | aplay -q 2>/dev/null";
                 break;
             default:
-                // CONCEPT 1 — fallback conditional for unsupported formats
+                
                 std::cout << "     (Unsupported format: ." << ext
                           << " — skipping actual playback)\n";
                 isPlaying_ = false;
                 return;
         }
 
-        // Attempt system playback; result non-zero means player missing
+        
         int result = system(command.c_str());
 
-        // CONCEPT 1 — conditional: inform user if player not installed
+        
         if (result != 0) {
             std::cout << "     (Audio player not found; simulating playback of \""
                       << path << "\")\n";
@@ -495,17 +445,14 @@ private:
     // --------------------------------------------------------
     //  Member data
     // --------------------------------------------------------
-    std::map<std::string, Playlist> playlists_;  // CONCEPT 5 — STL map
-    std::queue<Song>                playQueue_;  // CONCEPT 5 — STL queue
+    std::map<std::string, Playlist> playlists_;  
+    std::queue<Song>                playQueue_;  
     bool isPlaying_;
     int  currentVolume_;
 };
 
 
-// ============================================================
-//  CONCEPT 3 — Free function: printMenu()
-//  Prints the interactive menu without cluttering main().
-// ============================================================
+
 void printMenu() {
     std::cout << "\n╔══════════════════════════════╗\n"
               << "║     C++ Music Player v1.0    ║\n"
@@ -525,7 +472,6 @@ void printMenu() {
 
 
 // ============================================================
-//  CONCEPT 3 — Free function: seedLibrary()
 //  Populates the player with demo playlists and songs so the
 //  program is immediately usable without user input.
 // ============================================================
@@ -577,14 +523,13 @@ int main() {
 
     int choice = -1;
 
-    // CONCEPT 2 — outer while loop: keeps the REPL alive until the
-    //             user enters 0 to quit
+    
     while (choice != 0) {
         printMenu();
         std::cin >> choice;
 
         // Guard: if input failed (non-integer typed), reset stream
-        // CONCEPT 1 — conditional stream-state check
+        
         if (std::cin.fail()) {
             std::cin.clear();
             std::cin.ignore(1000, '\n');
@@ -594,7 +539,7 @@ int main() {
 
         std::cin.ignore(1000, '\n');  // discard leftover newline
 
-        // CONCEPT 1 — switch dispatches to the appropriate action
+       
         switch (choice) {
 
             case 1:  // List all playlists
@@ -655,8 +600,8 @@ int main() {
                 std::cout << "\n  Goodbye! 🎵\n\n";
                 break;
 
-            default:
-                // CONCEPT 1 — catch-all for unrecognised menu options
+            default:s
+                
                 std::cout << "  Unknown option. Please try again.\n";
                 break;
         }
